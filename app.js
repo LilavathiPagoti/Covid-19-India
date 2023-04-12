@@ -127,3 +127,57 @@ app.delete("/districts/:districtId/", async (request, response) => {
   await database.run(deleteDistrictQuery);
   response.send("district Removed");
 });
+//API 7
+app.get("/states/:stateId/stats/", async (request, response) => {
+  const { stateId } = request.params;
+  const getStatesStatsQuery = `
+    SELECT 
+    SUM(cases),
+    SUM(cured),
+    SUM(active),
+    SUM(deaths)
+    FROM district 
+    WHERE state_id=${stateId};
+    
+    `;
+  const stats = await database.get(getStatesStatsQuery);
+  response.send({
+    totalCases: stats["SUM(cases)"],
+    totalCured: stats["SUM(cured)"],
+    totalActive: stats["SUM(active)"],
+    totalDeaths: stats["SUM(deaths)"],
+  });
+});
+//API 8
+
+// app.get("/districts/:districtId/details/", async (request, response) => {
+//   const { districtId } = request.params;
+//   const getDistrictIdQuery = `
+
+//      SELECT state_id FROM district
+//      WHERE district_id=${districtId};
+
+//      `;
+//   const getDistrictIdQueryResponse = await database.get(getDistrictIdQuery);
+//   const getStateNameQuery = `
+// SELECT state_name as stateName FROM state
+// WHERE state_id = ${getDistrictIdQueryResponse.state_id}`;
+//   const getStateNameQueryResponse = await database.get(getStateNameQuery);
+//   response.send(getStateNameQueryResponse);
+// });
+app.get("/districts/:districtId/details/", async (request, response) => {
+  const { districtId } = request.params;
+  const getDistrictIdQuery = `
+SELECT state_id FROM district
+WHERE district_id = ${districtId};
+`;
+  const getDistrictIdQueryResponse = await database.get(getDistrictIdQuery);
+
+  const getStateNameQuery = `
+SELECT state_name as stateName FROM state
+WHERE state_id = ${getDistrictIdQueryResponse.state_id};
+`;
+  const getStateNameQueryResponse = await database.get(getStateNameQuery);
+  response.send(getStateNameQueryResponse);
+});
+module.exports = app;
